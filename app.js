@@ -4,7 +4,10 @@ var multer = require('multer');//用于处理 enctype="multipart/form-data"（�
 var express = require('express');
 
 var app = express();
-app.use(multer({ dest: 'tmp/' }).array('filename'));//multer 会自动创建 tmp 目录
+
+app.use('/upload', express.static('upload'));//设置静态文件路径
+
+app.use(multer({ dest: 'tmp/' }).array('filename'));//multer 会自动创建 tmp 目录;  filename:html表单name值
 
 app.get('/index.html', function (req, res) {
     res.sendFile(__dirname + "/" + "index.html");
@@ -15,15 +18,18 @@ app.post('/upload', function (req, res) {
     console.log(req.files);  // 上传的文件信息
 
     // upload 目录需要手动创建
-    var des_file = __dirname + "/upload/" + req.files[0].originalname;
+    var des_file = "./upload/" + req.files[0].originalname;
     fs.readFile(req.files[0].path, function (err, data) {
         fs.writeFile(des_file, data, function (err) {
             if (err) {
-                console.log(err);
+                response = {
+                    message: err
+                };
             } else {
                 response = {
                     message: 'File uploaded successfully',
-                    filename: req.files[0].originalname
+                    filename: req.files[0].originalname,
+                    path: `http://localhost:8081/` + des_file
                 };
             }
             res.end(JSON.stringify(response));
